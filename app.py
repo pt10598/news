@@ -48,3 +48,12 @@ def topics():
         return jsonify(ok=True)
     with connect() as c: data=[dict(r) for r in c.execute('SELECT * FROM watch_topics WHERE enabled=1 ORDER BY id DESC').fetchall()]
     return jsonify(data)
+
+@app.get('/api/sources/health')
+def source_health():
+    with connect() as c:
+        data=[dict(r) for r in c.execute('SELECT * FROM source_health ORDER BY status DESC, source_name').fetchall()]
+    for r in data:
+        for k,v in list(r.items()):
+            if hasattr(v,'isoformat'): r[k]=v.isoformat()
+    return jsonify(data)

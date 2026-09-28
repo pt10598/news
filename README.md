@@ -1,47 +1,37 @@
-# PulseWire – Media Intelligence V1.1
+# PulseWire V1.2 — Real Sources
 
-High-frequency domestic/international news discovery demo for a media-intelligence SaaS.
+即時新聞與輿情監測 MVP。Collector 使用 sources.json 管理來源，每個來源有自己的輪詢秒數；主迴圈每秒排程，最低 5 秒。
 
-## Included
-- 5-second collector loop (configurable with `POLL_SECONDS`)
-- Taiwan + international RSS/Atom source layer
-- SQLite zero-config local mode
-- Automatic PostgreSQL mode when `DATABASE_URL` exists (Heroku-ready)
-- URL deduplication
-- Publication → discovery latency measurement
-- Breaking flag heuristic
-- Search + domestic/international filters
-- Custom watch topics and keyword tagging
-- AI-ready fields: sentiment, sentiment_score, analyzed_at, importance
+## 已啟用真實來源
+- 中央社：即時頁 + 政治 / 國際 / 產經 / 科技 RSS
+- 自由時報：即時 / 政治 / 國際 / 財經 RSS
+- BBC：World / Business RSS
+- The Guardian：World / Business RSS
 
-## Local
-```bash
+TVBS、聯合、ETtoday、CNN、Reuters、AP 已放入 registry，但預設 disabled；正式啟用前應逐站確認穩定抓取方式、robots/條款與商業授權。
+
+## 新增功能
+- sources.json 來源 registry
+- 每來源獨立 interval
+- source_health 健康度：最後檢查、成功時間、錯誤、回應毫秒、抓到筆數
+- /api/sources/health
+- 每篇新聞記錄 source_id 與 latency_seconds
+- CNA 即時頁 HTML collector（不等待 RSS）
+
+## 本機
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
 pip install -r requirements.txt
+python app.py
+# 另一個 terminal
 python collector.py
-# another terminal
-flask --app app run
-```
-Open http://127.0.0.1:5000
 
 ## Heroku
-Add Heroku Postgres, deploy this folder, then:
-```bash
-heroku config:set POLL_SECONDS=5
-heroku ps:scale web=1 collector=1
-```
-Heroku supplies `DATABASE_URL`; PulseWire will then use PostgreSQL automatically.
+建立 Heroku Postgres，設定 DATABASE_URL 後：
+- web: gunicorn app:app
+- worker: python collector.py
 
-## Environment
-- `POLL_SECONDS=5`
-- `EXTRA_FEEDS=https://example.com/feed.xml,https://example.org/rss`
-- `DATABASE_URL=...` (automatic on Heroku Postgres)
+注意：5 秒代表 PulseWire 最快每 5 秒檢查一次指定來源，不代表來源發布後保證 5 秒內可取得；RSS/API/網站本身的更新延遲仍會影響實際 latency。
 
-## Important
-Five-second polling means PulseWire checks a configured source frequently. It cannot guarantee a publisher exposes a new article within five seconds. Review each publisher's licensing, RSS/API terms, robots policy and rate limits before commercial ingestion.
-
-## V1.2 recommended
-1. AI analyzer worker: Chinese translation, summary, sentiment, entities
-2. Redis queue so AI never blocks ingestion
-3. Event clustering + real breaking detection based on cross-source velocity
-4. Source health dashboard and per-source latency percentiles
-5. Multi-tenant login + alert rules
+## 商業授權
+此專案只提供技術整合骨架。新聞標題、摘要、全文、圖片、RSS/API 的商業使用權依各來源條款而定。正式出售給媒體公司前，請建立來源授權清單並取得必要授權。

@@ -1,0 +1,21 @@
+[
+ {"id":"cna_all","name":"中央社 即時","region":"國內","type":"page","url":"https://www.cna.com.tw/list/aall.aspx","interval":5,"enabled":true,"commercial":"review"},
+ {"id":"cna_politics","name":"中央社 政治","region":"國內","type":"rss","url":"https://feeds.feedburner.com/rsscna/politics","interval":10,"enabled":true,"commercial":"review"},
+ {"id":"cna_world","name":"中央社 國際","region":"國外","type":"rss","url":"https://feeds.feedburner.com/rsscna/intworld","interval":10,"enabled":true,"commercial":"review"},
+ {"id":"cna_finance","name":"中央社 產經","region":"國內","type":"rss","url":"https://feeds.feedburner.com/rsscna/finance","interval":10,"enabled":true,"commercial":"review"},
+ {"id":"cna_tech","name":"中央社 科技","region":"國內","type":"rss","url":"https://feeds.feedburner.com/rsscna/technology","interval":15,"enabled":true,"commercial":"review"},
+ {"id":"ltn_all","name":"自由時報 即時","region":"國內","type":"rss","url":"https://news.ltn.com.tw/rss/all.xml","interval":10,"enabled":true,"commercial":"review"},
+ {"id":"ltn_politics","name":"自由時報 政治","region":"國內","type":"rss","url":"https://news.ltn.com.tw/rss/politics.xml","interval":15,"enabled":true,"commercial":"review"},
+ {"id":"ltn_world","name":"自由時報 國際","region":"國外","type":"rss","url":"https://news.ltn.com.tw/rss/world.xml","interval":15,"enabled":true,"commercial":"review"},
+ {"id":"ltn_business","name":"自由時報 財經","region":"國內","type":"rss","url":"https://news.ltn.com.tw/rss/business.xml","interval":15,"enabled":true,"commercial":"review"},
+ {"id":"bbc_world","name":"BBC World","region":"國外","type":"rss","url":"https://feeds.bbci.co.uk/news/world/rss.xml","interval":15,"enabled":true,"commercial":"review"},
+ {"id":"bbc_business","name":"BBC Business","region":"國外","type":"rss","url":"https://feeds.bbci.co.uk/news/business/rss.xml","interval":20,"enabled":true,"commercial":"review"},
+ {"id":"guardian_world","name":"The Guardian World","region":"國外","type":"rss","url":"https://www.theguardian.com/world/rss","interval":20,"enabled":true,"commercial":"review"},
+ {"id":"guardian_business","name":"The Guardian Business","region":"國外","type":"rss","url":"https://www.theguardian.com/uk/business/rss","interval":30,"enabled":true,"commercial":"review"},
+ {"id":"tvbs","name":"TVBS","region":"國內","type":"candidate","url":"https://news.tvbs.com.tw/realtime","interval":30,"enabled":false,"commercial":"review"},
+ {"id":"udn","name":"聯合新聞網","region":"國內","type":"candidate","url":"https://udn.com/news/breaknews/1","interval":30,"enabled":false,"commercial":"review"},
+ {"id":"ettoday","name":"ETtoday","region":"國內","type":"candidate","url":"https://www.ettoday.net/news/news-list.htm","interval":30,"enabled":false,"commercial":"review"},
+ {"id":"cnn","name":"CNN","region":"國外","type":"candidate","url":"https://edition.cnn.com/world","interval":30,"enabled":false,"commercial":"review"},
+ {"id":"reuters","name":"Reuters","region":"國外","type":"candidate","url":"https://www.reuters.com/world/","interval":30,"enabled":false,"commercial":"license"},
+ {"id":"ap","name":"Associated Press","region":"國外","type":"candidate","url":"https://apnews.com/","interval":30,"enabled":false,"commercial":"license"}
+]

@@ -21,11 +21,16 @@ def init_db():
               discovered_at TIMESTAMPTZ DEFAULT NOW(), analyzed_at TIMESTAMPTZ,
               sentiment TEXT DEFAULT '分析中', sentiment_score DOUBLE PRECISION,
               topic TEXT DEFAULT '未分類', importance INTEGER DEFAULT 0,
-              is_breaking BOOLEAN DEFAULT FALSE, latency_seconds DOUBLE PRECISION)''')
+              is_breaking BOOLEAN DEFAULT FALSE, latency_seconds DOUBLE PRECISION, source_id TEXT)''')
+            c.execute('''CREATE TABLE IF NOT EXISTS source_health(source_id TEXT PRIMARY KEY, source_name TEXT, last_checked TIMESTAMPTZ, last_success TIMESTAMPTZ, last_error TEXT, last_count INTEGER DEFAULT 0, response_ms INTEGER, status TEXT)''')
             c.execute('''CREATE TABLE IF NOT EXISTS watch_topics(
               id BIGSERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL, keywords TEXT NOT NULL,
               enabled BOOLEAN DEFAULT TRUE, created_at TIMESTAMPTZ DEFAULT NOW())''')
             c.execute('CREATE INDEX IF NOT EXISTS idx_articles_discovered ON articles(discovered_at DESC)')
+            try: c.execute('ALTER TABLE articles ADD COLUMN source_id TEXT')
+            except Exception: pass
+            try: c.execute('ALTER TABLE articles ADD COLUMN source_id TEXT')
+            except Exception: pass
         else:
             c.execute('''CREATE TABLE IF NOT EXISTS articles(
               id INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT, region TEXT, title TEXT NOT NULL,
@@ -33,7 +38,8 @@ def init_db():
               discovered_at TEXT DEFAULT CURRENT_TIMESTAMP, analyzed_at TEXT,
               sentiment TEXT DEFAULT '分析中', sentiment_score REAL,
               topic TEXT DEFAULT '未分類', importance INTEGER DEFAULT 0,
-              is_breaking INTEGER DEFAULT 0, latency_seconds REAL)''')
+              is_breaking INTEGER DEFAULT 0, latency_seconds REAL, source_id TEXT)''')
+            c.execute('''CREATE TABLE IF NOT EXISTS source_health(source_id TEXT PRIMARY KEY, source_name TEXT, last_checked TEXT, last_success TEXT, last_error TEXT, last_count INTEGER DEFAULT 0, response_ms INTEGER, status TEXT)''')
             c.execute('''CREATE TABLE IF NOT EXISTS watch_topics(
               id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, keywords TEXT NOT NULL,
               enabled INTEGER DEFAULT 1, created_at TEXT DEFAULT CURRENT_TIMESTAMP)''')
