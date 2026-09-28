@@ -35,3 +35,9 @@ python collector.py
 
 ## 商業授權
 此專案只提供技術整合骨架。新聞標題、摘要、全文、圖片、RSS/API 的商業使用權依各來源條款而定。正式出售給媒體公司前，請建立來源授權清單並取得必要授權。
+
+## V1.3 Live Search
+- Search first checks the local PulseWire database.
+- Clicking Search (or Enter) calls `/api/live-search`, queries live news search RSS for the keyword, de-duplicates by URL, stores results, then refreshes the dashboard.
+- Search terms are stored as the article topic for live-search results, so they can be filtered/analyzed later.
+- This is a discovery/indexing mechanism. Commercial deployments must review each underlying publisher's licensing/terms before displaying or storing content beyond permitted metadata/snippets.

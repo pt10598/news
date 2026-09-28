@@ -7,27 +7,11 @@
 <script>
 const esc=s=>{let d=document.createElement('div');d.textContent=s||'';return d.innerHTML};
 function setRegion(v,b){document.querySelector('#region').value=v;document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');load()}
-async function load(){
-  const q=document.querySelector('#q').value.trim();
-  const r=document.querySelector('#region').value;
-  const params=new URLSearchParams({q:q,region:r});
-  const feed=document.querySelector('#feed');
-  try{
-    const res=await fetch('/api/articles?'+params.toString(),{cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const a=await res.json();
-    feed.innerHTML=a.length?a.map(x=>`<article class="news"><div class="meta"><span>${esc(x.region)}</span><b>${esc(x.source)}</b><time>${esc(x.discovered_at||'')}</time></div><a href="${esc(x.url)}" target="_blank" rel="noopener"><h3>${esc(x.title)}</h3></a><p>${esc((x.summary||'').replace(/<[^>]+>/g,'').slice(0,220))}</p><div class="tags"><i>${esc(x.topic)}</i><i>${esc(x.sentiment)}</i></div></article>`).join(''):`<div class="empty">${q?'找不到「'+esc(q)+'」的新聞。可改用較短關鍵字，或切換「全球／國內／國外」。':'目前尚無新聞資料。請確認 collector 正在執行。'}</div>`;
-    document.querySelector('#last').textContent=(q?`搜尋「${q}」：${a.length} 筆｜`:'')+'最後刷新 '+new Date().toLocaleTimeString();
-  }catch(e){
-    feed.innerHTML='<div class="empty">搜尋失敗：'+esc(e.message)+'。請檢查後端 /api/articles。</div>';
-  }
-}
-
-document.querySelector('#searchBtn').addEventListener('click',load);
-document.querySelector('#q').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();load();}});
-document.querySelector('#region').addEventListener('change',load);
+async function load(){let q=encodeURIComponent(document.querySelector('#q').value),r=encodeURIComponent(document.querySelector('#region').value);let a=await fetch(`/api/articles?q=${q}&region=${r}`).then(x=>x.json());let raw=document.querySelector('#q').value.trim();document.querySelector('#feed').innerHTML=a.length?a.map(x=>`<article class="news"><div class="meta"><span>${esc(x.region)}</span><b>${esc(x.source)}</b><time>${esc(x.discovered_at||'')}</time></div><a href="${esc(x.url)}" target="_blank" rel="noopener"><h3>${esc(x.title)}</h3></a><p>${esc((x.summary||'').replace(/<[^>]+>/g,'').slice(0,220))}</p><div class="tags"><i>${esc(x.topic)}</i><i>${esc(x.sentiment)}</i></div></article>`).join(''):`<div class="empty">${raw?'本地資料庫目前 0 筆。按「搜尋」會啟動即時新聞搜尋。':'尚無資料。啟動 collector 後，新新聞會出現在這裡。'}</div>`;document.querySelector('#last').textContent=(raw?`搜尋「${raw}」：${a.length} 筆｜`:'')+'最後刷新 '+new Date().toLocaleTimeString()}
+async function liveSearch(){let q=document.querySelector('#q').value.trim(),region=document.querySelector('#region').value;if(!q){load();return}let b=document.querySelector('#searchBtn');b.disabled=true;b.textContent='搜尋中…';document.querySelector('#last').textContent=`正在即時搜尋「${q}」…`;try{await fetch('/api/live-search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,region})});await load();await stats()}catch(e){document.querySelector('#last').textContent='即時搜尋失敗，請稍後重試'}finally{b.disabled=false;b.textContent='搜尋'}}
 async function stats(){let s=await fetch('/api/stats').then(x=>x.json());total.textContent=s.total;recent.textContent='+'+s.recent;sources.textContent=s.sources;breaking.textContent=s.breaking;latency.textContent=s.avg_latency+'s'}
 async function loadTopics(){let t=await fetch('/api/topics').then(x=>x.json());topics.innerHTML=t.length?t.map(x=>`<div>● ${esc(x.name)}<small> ${esc(x.keywords)}</small></div>`).join(''):'尚未建立監控主題'}
 async function addTopic(){let name=topicName.value.trim(),keywords=topicKeys.value.trim();if(!name||!keywords)return;await fetch('/api/topics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,keywords})});topicName.value='';topicKeys.value='';loadTopics()}
+document.querySelector('#q').addEventListener('keydown',e=>{if(e.key==='Enter')liveSearch()});
 setInterval(()=>{clock.textContent=new Date().toLocaleTimeString()},1000);setInterval(()=>{load();stats()},5000);load();stats();loadTopics();
 </script></body></html>

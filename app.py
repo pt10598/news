@@ -1,4 +1,5 @@
 from flask import Flask, render_template, jsonify, request
+from live_search import search_and_store
 from db import connect, init_db, IS_PG
 
 app=Flask(__name__); init_db()
@@ -36,6 +37,18 @@ def articles():
             if hasattr(v, 'isoformat'):
                 r[k] = v.isoformat()
     return jsonify(data)
+
+
+@app.post('/api/live-search')
+def live_search():
+    d=request.get_json(silent=True) or {}
+    q=(d.get('q') or '').strip(); region=d.get('region','all')
+    if not q:return jsonify(error='q required'),400
+    try:
+        result=search_and_store(q,region)
+        return jsonify(ok=True,**result)
+    except Exception as ex:
+        return jsonify(ok=False,error=str(ex)),502
 
 @app.get('/api/stats')
 def stats():
