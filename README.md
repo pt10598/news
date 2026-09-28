@@ -1,32 +1,47 @@
-# PulseWire – Media Intelligence V1
+# PulseWire – Media Intelligence V1.1
 
-A deployable Flask demo for high-frequency RSS/Atom news discovery.
+High-frequency domestic/international news discovery demo for a media-intelligence SaaS.
+
+## Included
+- 5-second collector loop (configurable with `POLL_SECONDS`)
+- Taiwan + international RSS/Atom source layer
+- SQLite zero-config local mode
+- Automatic PostgreSQL mode when `DATABASE_URL` exists (Heroku-ready)
+- URL deduplication
+- Publication → discovery latency measurement
+- Breaking flag heuristic
+- Search + domestic/international filters
+- Custom watch topics and keyword tagging
+- AI-ready fields: sentiment, sentiment_score, analyzed_at, importance
 
 ## Local
 ```bash
 pip install -r requirements.txt
 python collector.py
-# in another terminal
+# another terminal
 flask --app app run
 ```
 Open http://127.0.0.1:5000
 
 ## Heroku
-Create an app, deploy this folder, then scale both processes:
+Add Heroku Postgres, deploy this folder, then:
 ```bash
+heroku config:set POLL_SECONDS=5
 heroku ps:scale web=1 collector=1
 ```
-`POLL_SECONDS=5` is the default. The collector polls each configured feed in a loop and the browser refreshes its feed every 5 seconds.
+Heroku supplies `DATABASE_URL`; PulseWire will then use PostgreSQL automatically.
 
-## Important production notes
-- V1 uses SQLite only to make the downloaded demo immediately runnable. On Heroku, SQLite is ephemeral: migrate the article repository to Heroku Postgres before production.
-- Review provider terms, robots rules, licensing and rate limits before commercial ingestion.
-- Five-second polling means the platform checks frequently; it does not guarantee a publisher's feed/API exposes an article within five seconds of publication.
-- For scale: use Postgres + Redis queue + separate per-source collectors + SSE/WebSocket push.
+## Environment
+- `POLL_SECONDS=5`
+- `EXTRA_FEEDS=https://example.com/feed.xml,https://example.org/rss`
+- `DATABASE_URL=...` (automatic on Heroku Postgres)
 
-## Next build
-1. Postgres repository layer
-2. Source management UI and health/latency metrics
-3. AI topic, entity, sentiment and Chinese summaries
-4. Event clustering and breaking-news detection
-5. Multi-tenant accounts and alert rules
+## Important
+Five-second polling means PulseWire checks a configured source frequently. It cannot guarantee a publisher exposes a new article within five seconds. Review each publisher's licensing, RSS/API terms, robots policy and rate limits before commercial ingestion.
+
+## V1.2 recommended
+1. AI analyzer worker: Chinese translation, summary, sentiment, entities
+2. Redis queue so AI never blocks ingestion
+3. Event clustering + real breaking detection based on cross-source velocity
+4. Source health dashboard and per-source latency percentiles
+5. Multi-tenant login + alert rules
