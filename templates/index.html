@@ -2,12 +2,30 @@
 <body><header><div><b>PulseWire</b><span> AI MEDIA INTELLIGENCE</span></div><div class="live">● LIVE <span id="clock"></span></div></header>
 <main><section class="hero"><div><small>REAL-TIME INTELLIGENCE</small><h1>全球即時輿情雷達</h1><p>國內外新聞高速蒐集、搜尋與事件監控 Demo</p></div><div class="status">Collector <b>5s</b><br><span>高頻輪詢模式</span></div></section>
 <section class="stats"><article><label>24H 新聞</label><strong id="total">—</strong></article><article><label>過去 5 分鐘</label><strong id="recent">—</strong></article><article><label>Breaking</label><strong id="breaking">—</strong></article><article><label>平均發現延遲</label><strong id="latency">—</strong></article><article><label>新聞來源</label><strong id="sources">—</strong></article></section>
-<section class="toolbar"><input id="q" placeholder="搜尋公司、人物、事件、關鍵字…"><select id="region"><option value="all">全球</option><option>國內</option><option>國外</option></select><button onclick="load()">搜尋</button></section>
+<section class="toolbar"><input id="q" type="search" autocomplete="off" placeholder="搜尋公司、人物、事件、關鍵字…"><select id="region"><option value="all">全球</option><option value="國內">國內</option><option value="國外">國外</option></select><button id="searchBtn" type="button">搜尋</button></section>
 <div class="layout"><aside><h3>情報篩選</h3><button class="filter active" onclick="setRegion('all',this)">全部情報</button><button class="filter" onclick="setRegion('國內',this)">🇹🇼 國內</button><button class="filter" onclick="setRegion('國外',this)">🌐 國際</button><hr><h3>主題追蹤</h3><div id="topics" class="muted">載入中…</div><input id="topicName" placeholder="主題名稱"><input id="topicKeys" placeholder="關鍵字，以逗號分隔"><button onclick="addTopic()">＋ 新增主題</button><p class="muted">符合關鍵字的新文章會自動標記；AI 摘要與情緒分析接口已預留。</p></aside><section><div class="sectionhead"><h2>最新情報</h2><span id="last">等待資料</span></div><div id="feed"></div></section></div></main>
 <script>
 const esc=s=>{let d=document.createElement('div');d.textContent=s||'';return d.innerHTML};
 function setRegion(v,b){document.querySelector('#region').value=v;document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');load()}
-async function load(){let q=encodeURIComponent(document.querySelector('#q').value),r=encodeURIComponent(document.querySelector('#region').value);let a=await fetch(`/api/articles?q=${q}&region=${r}`).then(x=>x.json());document.querySelector('#feed').innerHTML=a.length?a.map(x=>`<article class="news"><div class="meta"><span>${esc(x.region)}</span><b>${esc(x.source)}</b><time>${esc(x.discovered_at||'')}</time></div><a href="${esc(x.url)}" target="_blank" rel="noopener"><h3>${esc(x.title)}</h3></a><p>${esc((x.summary||'').replace(/<[^>]+>/g,'').slice(0,220))}</p><div class="tags"><i>${esc(x.topic)}</i><i>${esc(x.sentiment)}</i></div></article>`).join(''):'<div class="empty">尚無資料。啟動 collector 後，新新聞會出現在這裡。</div>';document.querySelector('#last').textContent='最後刷新 '+new Date().toLocaleTimeString()}
+async function load(){
+  const q=document.querySelector('#q').value.trim();
+  const r=document.querySelector('#region').value;
+  const params=new URLSearchParams({q:q,region:r});
+  const feed=document.querySelector('#feed');
+  try{
+    const res=await fetch('/api/articles?'+params.toString(),{cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const a=await res.json();
+    feed.innerHTML=a.length?a.map(x=>`<article class="news"><div class="meta"><span>${esc(x.region)}</span><b>${esc(x.source)}</b><time>${esc(x.discovered_at||'')}</time></div><a href="${esc(x.url)}" target="_blank" rel="noopener"><h3>${esc(x.title)}</h3></a><p>${esc((x.summary||'').replace(/<[^>]+>/g,'').slice(0,220))}</p><div class="tags"><i>${esc(x.topic)}</i><i>${esc(x.sentiment)}</i></div></article>`).join(''):`<div class="empty">${q?'找不到「'+esc(q)+'」的新聞。可改用較短關鍵字，或切換「全球／國內／國外」。':'目前尚無新聞資料。請確認 collector 正在執行。'}</div>`;
+    document.querySelector('#last').textContent=(q?`搜尋「${q}」：${a.length} 筆｜`:'')+'最後刷新 '+new Date().toLocaleTimeString();
+  }catch(e){
+    feed.innerHTML='<div class="empty">搜尋失敗：'+esc(e.message)+'。請檢查後端 /api/articles。</div>';
+  }
+}
+
+document.querySelector('#searchBtn').addEventListener('click',load);
+document.querySelector('#q').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();load();}});
+document.querySelector('#region').addEventListener('change',load);
 async function stats(){let s=await fetch('/api/stats').then(x=>x.json());total.textContent=s.total;recent.textContent='+'+s.recent;sources.textContent=s.sources;breaking.textContent=s.breaking;latency.textContent=s.avg_latency+'s'}
 async function loadTopics(){let t=await fetch('/api/topics').then(x=>x.json());topics.innerHTML=t.length?t.map(x=>`<div>● ${esc(x.name)}<small> ${esc(x.keywords)}</small></div>`).join(''):'尚未建立監控主題'}
 async function addTopic(){let name=topicName.value.trim(),keywords=topicKeys.value.trim();if(!name||!keywords)return;await fetch('/api/topics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,keywords})});topicName.value='';topicKeys.value='';loadTopics()}

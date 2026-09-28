@@ -9,17 +9,32 @@ def index(): return render_template('index.html')
 
 @app.get('/api/articles')
 def articles():
-    q=request.args.get('q','').strip(); region=request.args.get('region','all'); topic=request.args.get('topic','all')
-    sql='SELECT * FROM articles WHERE 1=1'; args=[]
-    if q:
-        like=f'%{q}%'; sql+=f' AND (title LIKE {P} OR summary LIKE {P} OR source LIKE {P} OR topic LIKE {P})'; args += [like]*4
-    if region!='all': sql+=f' AND region={P}'; args.append(region)
-    if topic!='all': sql+=f' AND topic={P}'; args.append(topic)
-    sql+=' ORDER BY discovered_at DESC LIMIT 250'
-    with connect() as c: data=[dict(r) for r in c.execute(sql,args).fetchall()]
+    q = request.args.get('q', '').strip()
+    region = request.args.get('region', 'all').strip()
+    topic = request.args.get('topic', 'all').strip()
+    sql = 'SELECT * FROM articles WHERE 1=1'
+    args = []
+    terms = [t for t in q.split() if t]
+    for term in terms:
+        like = f'%{term}%'
+        if IS_PG:
+            sql += f" AND (COALESCE(title,'') ILIKE {P} OR COALESCE(summary,'') ILIKE {P} OR COALESCE(source,'') ILIKE {P} OR COALESCE(topic,'') ILIKE {P})"
+        else:
+            sql += f" AND (COALESCE(title,'') LIKE {P} COLLATE NOCASE OR COALESCE(summary,'') LIKE {P} COLLATE NOCASE OR COALESCE(source,'') LIKE {P} COLLATE NOCASE OR COALESCE(topic,'') LIKE {P} COLLATE NOCASE)"
+        args += [like] * 4
+    if region and region != 'all':
+        sql += f' AND region={P}'
+        args.append(region)
+    if topic and topic != 'all':
+        sql += f' AND topic={P}'
+        args.append(topic)
+    sql += ' ORDER BY discovered_at DESC LIMIT 250'
+    with connect() as c:
+        data = [dict(r) for r in c.execute(sql, args).fetchall()]
     for r in data:
-        for k,v in list(r.items()):
-            if hasattr(v,'isoformat'): r[k]=v.isoformat()
+        for k, v in list(r.items()):
+            if hasattr(v, 'isoformat'):
+                r[k] = v.isoformat()
     return jsonify(data)
 
 @app.get('/api/stats')
